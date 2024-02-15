@@ -6,7 +6,7 @@ data "aws_caller_identity" "current" {}
 data "aws_availability_zones" "available" {}
 
 locals {
-  name            = "ex-${replace(basename(path.cwd), "_", "-")}"
+  name            = "${replace(basename(path.cwd), "_", "-")}"
   cluster_version = "1.27"
   region          = "eu-central-1"
 
@@ -14,7 +14,6 @@ locals {
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
   tags = {
-    Example    = local.name
     GithubRepo = "terraform-aws-eks"
     GithubOrg  = "terraform-aws-modules"
   }
@@ -197,7 +196,7 @@ module "eks" {
         max_unavailable_percentage = 33 # or set `max_unavailable`
       }
 
-      description = "EKS managed node group example launch template"
+      description = "EKS managed node group launch template"
 
       ebs_optimized           = true
       disable_api_termination = false
@@ -226,9 +225,9 @@ module "eks" {
       }
 
       create_iam_role          = true
-      iam_role_name            = "eks-managed-node-group-complete-example"
+      iam_role_name            = "eks-managed-node-group-complete"
       iam_role_use_name_prefix = false
-      iam_role_description     = "EKS managed node group complete example role"
+      iam_role_description     = "EKS managed node group complete role"
       iam_role_tags = {
         Purpose = "Protector of the kubelet"
       }
@@ -238,7 +237,7 @@ module "eks" {
       }
 
       tags = {
-        ExtraTag = "EKS managed node group complete example"
+        ExtraTag = "EKS managed node group complete"
       }
     }
   }
@@ -296,35 +295,35 @@ module "disabled_eks" {
 # Sub-Module Usage on Existing/Separate Cluster
 ################################################################################
 
-module "eks_managed_node_group" {
-  source = "../../modules/eks-managed-node-group"
+# module "eks_managed_node_group" {
+#   source = "../../modules/eks-managed-node-group"
 
-  name            = "separate-eks-mng"
-  cluster_name    = module.eks.cluster_name
-  cluster_version = module.eks.cluster_version
+#   name            = "separate-eks-mng"
+#   cluster_name    = module.eks.cluster_name
+#   cluster_version = module.eks.cluster_version
 
-  subnet_ids                        = module.vpc.private_subnets
-  cluster_primary_security_group_id = module.eks.cluster_primary_security_group_id
-  vpc_security_group_ids = [
-    module.eks.cluster_security_group_id,
-  ]
+#   subnet_ids                        = module.vpc.private_subnets
+#   cluster_primary_security_group_id = module.eks.cluster_primary_security_group_id
+#   vpc_security_group_ids = [
+#     module.eks.cluster_security_group_id,
+#   ]
 
-  ami_type = "BOTTLEROCKET_x86_64"
-  platform = "bottlerocket"
+#   ami_type = "BOTTLEROCKET_x86_64"
+#   platform = "bottlerocket"
 
-  # this will get added to what AWS provides
-  bootstrap_extra_args = <<-EOT
-    # extra args added
-    [settings.kernel]
-    lockdown = "integrity"
+#   # this will get added to what AWS provides
+#   bootstrap_extra_args = <<-EOT
+#     # extra args added
+#     [settings.kernel]
+#     lockdown = "integrity"
 
-    [settings.kubernetes.node-labels]
-    "label1" = "foo"
-    "label2" = "bar"
-  EOT
+#     [settings.kubernetes.node-labels]
+#     "label1" = "foo"
+#     "label2" = "bar"
+#   EOT
 
-  tags = merge(local.tags, { Separate = "eks-managed-node-group" })
-}
+#   tags = merge(local.tags, { Separate = "eks-managed-node-group" })
+# }
 
 module "disabled_eks_managed_node_group" {
   source = "../../modules/eks-managed-node-group"
@@ -431,7 +430,7 @@ resource "aws_security_group" "remote_access" {
 
 resource "aws_iam_policy" "node_additional" {
   name        = "${local.name}-additional"
-  description = "Example usage of node additional policy"
+  description = "Usage of node additional policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -482,7 +481,7 @@ data "aws_ami" "eks_default_bottlerocket" {
 resource "aws_iam_role" "this" {
   for_each = toset(["single", "multiple"])
 
-  name = "ex-${each.key}"
+  name = "${each.key}"
 
   # Just using for this example
   assume_role_policy = jsonencode({
